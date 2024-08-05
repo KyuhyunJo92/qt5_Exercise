@@ -1,0 +1,68 @@
+// main.cpp
+#include <QGuiApplication>
+#include <QQmlApplicationEngine>
+#include <QQmlContext>
+#include "myviewmodel.h"
+
+int main(int argc, char *argv[])
+{
+    QGuiApplication app(argc, argv);
+
+    QQmlApplicationEngine engine;
+
+    MyViewModel viewModel;
+    engine.rootContext()->setContextProperty("viewModel", &viewModel);
+
+    engine.load(QUrl(QStringLiteral("qrc:/main.qml")));
+    if (engine.rootObjects().isEmpty())
+        return -1;
+
+    return app.exec();
+}
+
+// myviewmodel.h
+#ifndef MYVIEWMODEL_H
+#define MYVIEWMODEL_H
+
+#include <QObject>
+#include <QString>
+
+class MyViewModel : public QObject
+{
+    Q_OBJECT
+    Q_PROPERTY(QString text READ text WRITE setText NOTIFY textChanged)
+
+public:
+    MyViewModel(QObject *parent = nullptr) : QObject(parent), m_text("Hello, Qt!") {}
+
+    QString text() const { return m_text; }
+    void setText(const QString &text) {
+        if (m_text != text) {
+            m_text = text;
+            emit textChanged();
+        }
+    }
+
+signals:
+    void textChanged();
+
+private:
+    QString m_text;
+};
+
+#endif // MYVIEWMODEL_H
+
+// main.qml
+import QtQuick 2.15
+import QtQuick.Controls 2.15
+
+ApplicationWindow {
+    visible: true
+    width: 640
+    height: 480
+
+    TextField {
+        text: viewModel.text
+        onTextChanged: viewModel.text = text
+    }
+}
